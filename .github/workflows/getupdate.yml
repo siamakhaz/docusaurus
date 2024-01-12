@@ -30,8 +30,8 @@ jobs:
             echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
   
             # Configure git
-            git config --global user.name 'siamak-zanjani'
-            git config --global user.email 'siamak-zanjani@octasic.com'
+            git config --global user.name 'siamakhaz'
+            git config --global user.email 'siamak.h.a.z@gmail.com'
   
             # Clone the external repository
             git clone https://${{ github.event.inputs.token }}@${{ github.event.inputs.repo_uri }} external-repo
