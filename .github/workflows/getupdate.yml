@@ -1,0 +1,136 @@
+name: Clone and Copy Docs
+
+on:
+  repository_dispatch:
+    types: [clone-and-copy-triger]
+  workflow_dispatch:
+    inputs:
+      repo_uri:
+        description: 'Repository URI'
+        required: true
+      token:
+        description: 'Access Token'
+        required: true
+      version:
+        description: 'Version Number'
+        required: true
+
+jobs:
+    clone-and-copy:
+      runs-on: ubuntu-latest
+  
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+  
+        - name: Clone external repository and copy docs
+          run: |
+            # Parse repository name from URI
+            REPO_NAME=$(basename ${{ github.event.inputs.repo_uri }} .git)
+            echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+  
+            # Configure git
+            git config --global user.name 'siamak-zanjani'
+            git config --global user.email 'siamak-zanjani@octasic.com'
+  
+            # Clone the external repository
+            git clone https://${{ github.event.inputs.token }}@${{ github.event.inputs.repo_uri }} external-repo
+            cd external-repo
+            ls -al 
+  
+            # Copy docs to the specific folder in the current repository
+            VERSION_FOLDER=$GITHUB_WORKSPACE/data/my-website/docs/$REPO_NAME/${{ github.event.inputs.version }}
+            mkdir -p $VERSION_FOLDER
+            cp -r docs/* $VERSION_FOLDER
+
+            # Create _category_.json in the version folder
+            echo "{\"label\": \"${{ github.event.inputs.version }}\", \"link\": {\"type\": \"generated-index\"}}" > $VERSION_FOLDER/_category_.json
+            cat $VERSION_FOLDER/_category_.json
+
+            # Navigate back to the workspace
+            cd $GITHUB_WORKSPACE
+            ls -al data/my-website/docs/$REPO_NAME/${{ github.event.inputs.version }}
+            
+  
+            # Add changes
+            git add data/my-website/docs/$REPO_NAME/${{ github.event.inputs.version }}/* || echo "No changes to add"
+            
+                       
+            echo "Repository Name: $REPO_NAME"
+            echo "Version: ${{ github.event.inputs.version }}"
+            echo "Full Path: data/my-website/docs/$REPO_NAME/${{ github.event.inputs.version }}"
+
+            git diff --staged --quiet || HAS_CHANGES=$?
+
+            if [ -n "${HAS_CHANGES}" ]; then
+                echo "Commit and Push changes"
+                # Commit and push the changes if there are any
+                git commit -m "Added docs from ${{ github.event.inputs.repo_uri }} version ${{ github.event.inputs.version }}"
+                git push
+            else
+                echo "No changes to commit."
+            fi
+        - name: Trigger Repository Dispatch
+          if: success()
+          run: |
+            # echo ${{ secrets.GITHUB_TOKEN.TOKEN }}
+            curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.FLOWTOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/siamak-zanjani/docusaurus/dispatches \
+            -d '{"event_type": "build-and-deploy-trigger"}'
+            
+          env:
+            REPO_URI: ${{ github.event.inputs.repo_uri }}
+            REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Assuming you are using the GitHub token
+            VERSION: ${{ github.event.inputs.version }}
+
+    # build-and-deploy:
+    #   needs: clone-and-copy 
+    #   runs-on: ubuntu-latest
+    #   permissions:  # Set the required permissions for this job
+    #     contents: read
+    #     pages: write
+    #     id-token: write
+    #   container:
+    #       image: node:latest
+    
+    #   steps:
+    #     - name: Checkout
+    #       uses: actions/checkout@v4
+    #       with:
+    #         # This is optional if you want to fetch the entire repository history.
+    #         # If omitted, it fetches only the latest commit.
+    #         fetch-depth: 0
+    
+    #     - name: Navigate To data Folder
+    #       run: |
+    #         cd data/my-website/ 
+    #         ls -al docs/docs/       
+    
+    #     - name: Install Dependencies
+    #       run: npm install
+    #       working-directory: ./data/my-website # Ensure this is the correct path to your project's root with package.json
+    
+    
+    #     - name: Build Project
+    #       run: npm run build
+    #       working-directory: ./data/my-website # Ensure this is the correct path to your project's root with package.json
+    
+    
+    #     - name: Setup Pages
+    #       uses: actions/configure-pages@v4
+    
+    #     - name: Upload artifact
+    #       uses: actions/upload-pages-artifact@v3
+    #       with:
+    #           path: './data/my-website/build' # Change this to the directory where your build output is located
+    
+    #     - name: Deploy to GitHub Pages
+    #       id: deployment
+    #       uses: actions/deploy-pages@v4
+    
+    #     # This step will output the URL where your site has been deployed
+    #     - name: Check deployment URL
+    #       run: echo "Deployed to ${{ steps.deployment.outputs.page_url }}"
+    

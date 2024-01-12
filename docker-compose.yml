@@ -1,0 +1,13 @@
+version: '3'
+services:
+  my-node-app:
+    container_name: docusaurous
+    build: .
+    image: node
+    # command: /bin/bash -c "cd /apps/my-website && npm run build && npm run serve"
+    volumes:
+      - ./data:/apps
+    ports:
+      - "3000:3000"
+    tty: true
+    stdin_open: true
