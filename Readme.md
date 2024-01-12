@@ -30,7 +30,7 @@ Use the `Invoke-GitHubActionsWorkflow` method to add your documentation to the r
 #### Syntax
 
 ```powershell
-Invoke-GitHubActionsWorkflow -repo "siamak-zanjani/docusaurus" -workflowFileName "getupdate.yml" -token "<docusaurus_token>" -repoUri "github.com/your_project/repo_name" -externalToken "<token_for_second_repo_if_private>" -version "the_version"
+Invoke-GitHubActionsWorkflow -repo "siamakhaz/docusaurus" -workflowFileName "getupdate.yml" -token "<docusaurus_token>" -repoUri "github.com/your_project/repo_name" -externalToken "<token_for_second_repo_if_private>" -version "the_version"
 ```
 
 Replace the placeholders with actual values relevant to your documentation and repositories.
@@ -39,9 +39,9 @@ Replace the placeholders with actual values relevant to your documentation and r
 
 - `-repo`: The repository where the documentation will be added.
 - `-workflowFileName`: The name of the workflow file in the target repository.
-- `-token`: The access token for the `siamak-zanjani/docusaurus` repository.
+- `-token`: The access token for the `siamakhaz/docusaurus` repository.
 - `-repoUri`: The URI of the repository containing the documentation to be added.
 - `-externalToken`: (Optional) Access token for the repository specified in `repoUri` if it is private.
 - `-version`: The version tag associated with the documentation.
 
-By following these steps, you can seamlessly add new documentation to the `siamak-zanjani/docusaurus` repository.
+By following these steps, you can seamlessly add new documentation to the `siamakhaz/docusaurus` repository.
